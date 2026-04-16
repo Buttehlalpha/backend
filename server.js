@@ -9,31 +9,26 @@ const app = express();
 
 // ================= MIDDLEWARE =================
 
-// Allowed frontend origins
 const allowedOrigins = [
   "http://localhost:5173",
   "https://study-ai-p.vercel.app"
 ];
 
-// ✅ CORS FIX (PRODUCTION SAFE)
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or postman)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
-    } else {
-      return callback(null, true); // (safe open for now, prevents CORS crash)
     }
+
+    // allow all (safe for now)
+    return callback(null, true);
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
-
-// Handle preflight requests
-app.options("*", cors());
 
 app.use(express.json());
 
@@ -48,8 +43,6 @@ import aiRoutes from "./routes/aiRoutes.js";
 import visionRoutes from "./routes/visionRoutes.js";
 import groupRoutes from "./routes/groupRoutes.js";
 
-console.log("🔥 Registering routes...");
-
 app.use("/api/auth", authRoutes);
 app.use("/api/study", studyRoutes);
 app.use("/api/assignment", assignmentRoutes);
@@ -57,9 +50,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/vision", visionRoutes);
 app.use("/api/groups", groupRoutes);
 
-console.log("🔥 Routes loaded");
-
-// ================= HEALTH CHECK ROUTE =================
+// ================= HEALTH CHECK =================
 app.get("/", (req, res) => {
   res.send("🚀 Study AI Backend is running");
 });
