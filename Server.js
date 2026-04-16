@@ -8,7 +8,23 @@ dotenv.config();
 const app = express();
 
 // ================= MIDDLEWARE =================
-app.use(cors());
+
+// ✅ CORS FIX (VERY IMPORTANT)
+app.use(cors({
+  origin: ["https://study-ai.vercel.app"],
+  credentials: true
+}));
+
+// ✅ Extra headers (for safety)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://study-ai.vercel.app");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  next();
+});
+
 app.use(express.json());
 
 // ✅ Serve uploaded images
@@ -24,7 +40,7 @@ import groupRoutes from "./routes/groupRoutes.js";
 
 console.log("🔥 Registering routes...");
 
-// ✅ Register routes ONCE
+// ✅ Register routes
 app.use("/api/auth", authRoutes);
 app.use("/api/study", studyRoutes);
 app.use("/api/assignment", assignmentRoutes);
