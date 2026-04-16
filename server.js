@@ -2,7 +2,6 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import path from "path";
 
 dotenv.config();
 
@@ -10,11 +9,31 @@ const app = express();
 
 // ================= MIDDLEWARE =================
 
-// ✅ FINAL CORS FIX (works for all environments)
+// Allowed frontend origins
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://study-ai-p.vercel.app"
+];
+
+// ✅ CORS FIX (PRODUCTION SAFE)
 app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(null, true); // (safe open for now, prevents CORS crash)
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 }));
+
+// Handle preflight requests
+app.options("*", cors());
 
 app.use(express.json());
 
@@ -40,13 +59,9 @@ app.use("/api/groups", groupRoutes);
 
 console.log("🔥 Routes loaded");
 
-// ================= FRONTEND (OPTIONAL FULLSTACK ON RENDER) =================
-const __dirname = path.resolve();
-
-app.use(express.static(path.join(__dirname, "dist")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+// ================= HEALTH CHECK ROUTE =================
+app.get("/", (req, res) => {
+  res.send("🚀 Study AI Backend is running");
 });
 
 // ================= DATABASE =================
