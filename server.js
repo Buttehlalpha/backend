@@ -34,11 +34,7 @@ app.use(cors({
 }));
 
 
-import { register, login } from "./controllers/authController.js";
-
-// Direct routes (no router file)
-app.post("/api/auth/register", register);
-app.post("/api/auth/login", login);
+app.use(express.json());
 
 // ================= STATIC FILES =================
 app.use("/uploads", express.static("uploads"));
