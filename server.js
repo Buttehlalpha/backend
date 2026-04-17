@@ -34,11 +34,11 @@ app.use(cors({
 }));
 
 
-app.use(express.json());
-app.post("/api/auth/register", (req, res) => {
-  console.log("DIRECT REGISTER HIT");
-  res.json({ message: "REGISTER WORKING DIRECTLY" });
-});
+import { register, login } from "./controllers/authController.js";
+
+// Direct routes (no router file)
+app.post("/api/auth/register", register);
+app.post("/api/auth/login", login);
 
 // ================= STATIC FILES =================
 app.use("/uploads", express.static("uploads"));
