@@ -1,101 +1,45 @@
-
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-export const signup = async (req, res) => {
+export const register = async (req, res) => {
   try {
-    console.log("📩 REQUEST BODY:", req.body);
-
     const { name, email, password, school, level } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+    console.log("REGISTER HIT:", req.body);
 
-    const emailTrimmed = email.trim().toLowerCase();
-
-    const existingUser = await User.findOne({ email: emailTrimmed });
-
+    // 1. check if user exists
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // 2. hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 3. create user
     const user = await User.create({
       name,
-      email: emailTrimmed,
+      email,
       password: hashedPassword,
       school,
       level,
     });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    res.status(201).json({ token, user });
-
-  } catch (err) {
-    console.log("🔥 FULL ERROR:", err);
-    res.status(500).json({ message: err.message });
-  }
-};
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const emailTrimmed = email.trim().toLowerCase();
-
-    const user = await User.findOne({ email: emailTrimmed });
-
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
+    // 4. create token
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    res.json({ token, user });
-
-  } catch (err) {
-    console.log("🔥 LOGIN ERROR:", err);
-    res.status(500).json({ message: err.message });
-  }
-};
-export const googleAuth = async (req, res) => {
-  try {
-    const { name, email, googleId } = req.body;
-
-    let user = await User.findOne({ email });
-
-    if (!user) {
-      user = await User.create({
-        name,
-        email,
-        googleId,
-        password: "google-auth", // placeholder
-      });
-    }
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+    // 5. send response
+    res.status(201).json({
+      token,
+      user
     });
 
-    res.status(200).json({ token, user });
-
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Google auth failed" });
+    res.status(500).json({ error: error.message });
   }
 };
